@@ -68,12 +68,10 @@ fun ProfileScreen(
 
     LaunchedEffect(currentUser?.uid) {
         currentUser?.uid?.let { uid ->
-            // Carrega as informações cadastrais do usuário (nome, cpf, email)
             fbDatabase.getUserProfile(uid) { profile ->
                 userProfile = profile
             }
 
-            // Carrega as vacinas registradas
             fbDatabase.getVaccineRecords(uid).collect { list ->
                 vaccinesTaken = list
             }
@@ -97,12 +95,12 @@ fun ProfileScreen(
                     )
                     Spacer(modifier = Modifier.width(16.dp))
                     Column {
-                        // Exibe o Nome cadastrado (com fallback para o email ou 'Usuário')
+
                         Text(
                             text = userProfile?.name?.ifBlank { null } ?: currentUser?.email ?: "Usuário",
                             style = MaterialTheme.typography.titleMedium
                         )
-                        // Exibe o CPF formatado/cadastrado
+
                         Text(
                             text = if (!userProfile?.cpf.isNullOrBlank()) "CPF: ${userProfile?.cpf}" else "CPF não cadastrado",
                             style = MaterialTheme.typography.bodySmall,

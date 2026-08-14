@@ -50,7 +50,7 @@ fun LoginScreen(
         verticalArrangement = Arrangement.Center
     ) {
         Text(
-            text = if (isSignUpMode) "Criar Conta" else "Acessar Carteira de Vacinas",
+            text = if (isSignUpMode) "Criar Conta" else "Projeto Vacina",
             style = MaterialTheme.typography.headlineSmall
         )
 
