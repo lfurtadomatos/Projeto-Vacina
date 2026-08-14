@@ -44,6 +44,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
+import com.br.projetodevacina.data.User
 import com.br.projetodevacina.data.VaccineRecord
 import com.br.projetodevacina.db.FBAuth
 import com.br.projetodevacina.db.FBDatabase
@@ -61,11 +62,18 @@ fun ProfileScreen(
     val fbDatabase = remember { FBDatabase() }
     val currentUser = fbAuth.currentUser
 
+    var userProfile by remember { mutableStateOf<User?>(null) }
     var vaccinesTaken by remember { mutableStateOf<List<VaccineRecord>>(emptyList()) }
     var showAddDialog by remember { mutableStateOf(false) }
 
     LaunchedEffect(currentUser?.uid) {
         currentUser?.uid?.let { uid ->
+            // Carrega as informações cadastrais do usuário (nome, cpf, email)
+            fbDatabase.getUserProfile(uid) { profile ->
+                userProfile = profile
+            }
+
+            // Carrega as vacinas registradas
             fbDatabase.getVaccineRecords(uid).collect { list ->
                 vaccinesTaken = list
             }
@@ -89,12 +97,14 @@ fun ProfileScreen(
                     )
                     Spacer(modifier = Modifier.width(16.dp))
                     Column {
+                        // Exibe o Nome cadastrado (com fallback para o email ou 'Usuário')
                         Text(
-                            text = currentUser?.email ?: "Usuário",
+                            text = userProfile?.name?.ifBlank { null } ?: currentUser?.email ?: "Usuário",
                             style = MaterialTheme.typography.titleMedium
                         )
+                        // Exibe o CPF formatado/cadastrado
                         Text(
-                            text = "Carteira de Vacinação Digital",
+                            text = if (!userProfile?.cpf.isNullOrBlank()) "CPF: ${userProfile?.cpf}" else "CPF não cadastrado",
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )

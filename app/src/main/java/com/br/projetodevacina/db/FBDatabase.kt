@@ -18,6 +18,17 @@ class FBDatabase {
             .addOnFailureListener { onComplete(false) }
     }
 
+    fun getUserProfile(uid: String, onResult: (User?) -> Unit) {
+        db.collection("users")
+            .document(uid)
+            .get()
+            .addOnSuccessListener { document ->
+                val user = document.toObject(User::class.java)
+                onResult(user)
+            }
+            .addOnFailureListener { onResult(null) }
+    }
+
     fun addVaccineRecord(uid: String, record: VaccineRecord, onComplete: (Boolean) -> Unit) {
         val docRef = db.collection("users").document(uid).collection("vaccines").document()
         val finalRecord = record.copy(id = docRef.id)

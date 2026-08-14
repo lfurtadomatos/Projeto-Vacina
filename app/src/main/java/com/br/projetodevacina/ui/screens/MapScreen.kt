@@ -54,7 +54,7 @@ fun MapScreen(
         ) {
             healthCenters.forEach { center ->
                 Marker(
-                    state = MarkerState(position = center.position),
+                    state = MarkerState(position = center.position?: LatLng(-8.0522, -34.8856)),
                     title = center.name,
                     snippet = "Clique para ver mais detalhes",
                     onClick = {
@@ -83,7 +83,7 @@ fun MapScreen(
                 elevation = CardDefaults.cardElevation(defaultElevation = 8.dp)
             ) {
                 Column(modifier = Modifier.padding(16.dp)) {
-                    Text(text = center.name, style = MaterialTheme.typography.titleMedium)
+                    center.name?.let { Text(text = it, style = MaterialTheme.typography.titleMedium) }
                     Text(
                         text = "${center.address} - ${center.neighborhood}",
                         style = MaterialTheme.typography.bodySmall,
@@ -91,10 +91,12 @@ fun MapScreen(
                     )
                     Spacer(modifier = Modifier.height(8.dp))
                     Text(text = "Vacinas:", style = MaterialTheme.typography.labelLarge)
-                    Text(
-                        text = center.availableVaccines.joinToString(", "),
-                        style = MaterialTheme.typography.bodyMedium
-                    )
+                    center.availableVaccines?.let {
+                        Text(
+                            text = it.joinToString(", "),
+                            style = MaterialTheme.typography.bodyMedium
+                        )
+                    }
                 }
             }
         }

@@ -36,8 +36,10 @@ fun LoginScreen(
     val fbAuth = remember { FBAuth() }
 
     var email by remember { mutableStateOf("") }
+    var name by remember { mutableStateOf("") }
+    var cpf by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
-    var confirmPassword by remember { mutableStateOf("") } // Campo extra para o cadastro
+    var confirmPassword by remember { mutableStateOf("") }
     var isSignUpMode by remember { mutableStateOf(false) }
 
     Column(
@@ -53,6 +55,27 @@ fun LoginScreen(
         )
 
         Spacer(modifier = Modifier.height(24.dp))
+        if (isSignUpMode) {
+            OutlinedTextField(
+                value = name,
+                onValueChange = { name = it },
+                label = { Text("Nome Completo") },
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text),
+                modifier = Modifier.fillMaxWidth()
+            )
+
+            Spacer(modifier = Modifier.height(12.dp))
+
+            OutlinedTextField(
+                value = cpf,
+                onValueChange = { cpf = it },
+                label = { Text("CPF") },
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                modifier = Modifier.fillMaxWidth()
+            )
+
+            Spacer(modifier = Modifier.height(12.dp))
+        }
 
         OutlinedTextField(
             value = email,
@@ -91,20 +114,22 @@ fun LoginScreen(
         Button(
             onClick = {
                 if (isSignUpMode) {
-                    if (password.isBlank() || confirmPassword.isBlank()) {
-                        Toast.makeText(context, "Preencha todos os campos de senha!", Toast.LENGTH_SHORT).show()
+                    if (name.isBlank() || cpf.isBlank() || email.isBlank() || password.isBlank() || confirmPassword.isBlank()) {
+                        Toast.makeText(context, "Preencha todos os campos!", Toast.LENGTH_SHORT).show()
                     } else if (password != confirmPassword) {
                         Toast.makeText(context, "As senhas não coincidem!", Toast.LENGTH_SHORT).show()
                     } else {
                         fbAuth.signUp(
+                            name = name,
+                            cpf = cpf,
                             email = email,
                             pass = password,
                             onSuccess = {
                                 Toast.makeText(context, "Conta criada com sucesso!", Toast.LENGTH_SHORT).show()
                                 onLoginSuccess()
                             },
-                            onFailure = {
-                                Toast.makeText(context, "E-mail ou senha inválida", Toast.LENGTH_LONG).show()
+                            onFailure = { errorMsg ->
+                                Toast.makeText(context, errorMsg, Toast.LENGTH_LONG).show()
                             }
                         )
                     }
@@ -116,8 +141,8 @@ fun LoginScreen(
                             Toast.makeText(context, "Bem-vindo!", Toast.LENGTH_SHORT).show()
                             onLoginSuccess()
                         },
-                        onFailure = {
-                            Toast.makeText(context, "E-mail ou senha errada", Toast.LENGTH_LONG).show()
+                        onFailure = { errorMsg ->
+                            Toast.makeText(context, errorMsg, Toast.LENGTH_LONG).show()
                         }
                     )
                 }
@@ -132,6 +157,8 @@ fun LoginScreen(
         TextButton(
             onClick = {
                 isSignUpMode = !isSignUpMode
+                name = ""
+                cpf = ""
                 confirmPassword = ""
             }
         ) {

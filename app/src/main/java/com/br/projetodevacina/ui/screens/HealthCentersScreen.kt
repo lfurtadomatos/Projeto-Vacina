@@ -1,6 +1,7 @@
 package com.br.projetodevacina.ui.screens
 
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -17,12 +18,14 @@ import androidx.compose.material.icons.filled.Map
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -30,6 +33,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import com.br.projetodevacina.api.RetrofitClient
 import com.br.projetodevacina.data.HealthCenter
 
 @Composable
@@ -39,34 +43,33 @@ fun HealthCentersScreen(
 ) {
     var searchQuery by remember { mutableStateOf("") }
 
-    val sampleCenters = remember {
-        listOf(
-            HealthCenter(
-                cnes = "001",
-                name = "UBS Mário Pinotti",
-                address = "Rua das Flores, 123",
-                neighborhood = "Centro",
-                latitude = -8.0522,
-                longitude = -34.8856,
-                availableVaccines = listOf("Gripe", "COVID-19", "Hepatite B"),
-                distanceKm = 1.2
-            ),
-            HealthCenter(
-                cnes = "002",
-                name = "Centro de Saúde Boa Vista",
-                address = "Av. Agamenon Magalhães, 450",
-                neighborhood = "Boa Vista",
-                latitude = -8.0580,
-                longitude = -34.8910,
-                availableVaccines = listOf("Gripe", "Dengue", "Tríplice Viral"),
-                distanceKm = 2.5
-            )
-        )
+    var healthCenters by remember { mutableStateOf<List<HealthCenter>>(emptyList()) }
+    var isLoading by remember { mutableStateOf(true) }
+    var errorMessage by remember { mutableStateOf<String?>(null) }
+
+    LaunchedEffect(Unit) {
+        try {
+            isLoading = true
+            errorMessage = null
+
+            val response = RetrofitClient.apiService.getHealthCenters()
+            healthCenters = response.estabelecimentos ?: emptyList()
+
+        } catch (e: Exception) {
+            errorMessage = "Erro ao carregar postos: ${e.localizedMessage}"
+        } finally {
+            isLoading = false
+        }
     }
 
-    val filteredCenters = sampleCenters.filter { center ->
-        if (searchQuery.isBlank()) true
-        else center.availableVaccines.any { it.contains(searchQuery, ignoreCase = true) }
+    val filteredCenters = healthCenters.filter { center ->
+        if (searchQuery.isBlank()) {
+            true
+        } else {
+            val nameMatches = center.name?.contains(searchQuery, ignoreCase = true)
+            val vaccineMatches = center.availableVaccines?.any { it.contains(searchQuery, ignoreCase = true) } == true
+            nameMatches == true || vaccineMatches
+        }
     }
 
     Column(
@@ -77,7 +80,7 @@ fun HealthCentersScreen(
         OutlinedTextField(
             value = searchQuery,
             onValueChange = { searchQuery = it },
-            label = { Text("Qual vacina você procura? (ex: Gripe)") },
+            label = { Text("Buscar por nome ou vacina (ex: UBS, Gripe)") },
             leadingIcon = { Icon(imageVector = Icons.Default.Search, contentDescription = "Buscar") },
             modifier = Modifier.fillMaxWidth(),
             singleLine = true
@@ -91,7 +94,7 @@ fun HealthCentersScreen(
         ) {
             Icon(imageVector = Icons.Default.Map, contentDescription = "Mapa")
             Spacer(modifier = Modifier.width(8.dp))
-            Text("Ver postos próximos no Mapa")
+            Text("Ver postos no Mapa")
         }
 
         Spacer(modifier = Modifier.height(16.dp))
@@ -103,19 +106,38 @@ fun HealthCentersScreen(
 
         Spacer(modifier = Modifier.height(8.dp))
 
-        if (filteredCenters.isEmpty()) {
-            Text(
-                text = "Nenhum posto encontrado com a vacina informada.",
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                modifier = Modifier.padding(vertical = 16.dp)
-            )
-        } else {
-            LazyColumn(
-                verticalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                items(filteredCenters) { center ->
-                    HealthCenterCard(center = center)
+        when {
+            isLoading -> {
+                Box(
+                    modifier = Modifier.fillMaxSize(),
+                    contentAlignment = Alignment.Center
+                ) {
+                    CircularProgressIndicator()
+                }
+            }
+            errorMessage != null -> {
+                Text(
+                    text = errorMessage!!,
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.error,
+                    modifier = Modifier.padding(vertical = 16.dp)
+                )
+            }
+            filteredCenters.isEmpty() -> {
+                Text(
+                    text = "Nenhum posto encontrado.",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.padding(vertical = 16.dp)
+                )
+            }
+            else -> {
+                LazyColumn(
+                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    items(filteredCenters) { center ->
+                        HealthCenterCard(center = center)
+                    }
                 }
             }
         }
@@ -129,22 +151,11 @@ fun HealthCenterCard(center: HealthCenter) {
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.SpaceBetween,
+            Text(
+                text = center.formattedName,
+                style = MaterialTheme.typography.titleMedium,
                 modifier = Modifier.fillMaxWidth()
-            ) {
-                Text(
-                    text = center.name,
-                    style = MaterialTheme.typography.titleMedium,
-                    modifier = Modifier.weight(1f)
-                )
-                Text(
-                    text = "${center.distanceKm} km",
-                    style = MaterialTheme.typography.labelSmall,
-                    color = MaterialTheme.colorScheme.primary
-                )
-            }
+            )
 
             Spacer(modifier = Modifier.height(4.dp))
 
@@ -155,8 +166,16 @@ fun HealthCenterCard(center: HealthCenter) {
                     tint = MaterialTheme.colorScheme.onSurfaceVariant
                 )
                 Spacer(modifier = Modifier.width(4.dp))
+
+                val fullAddress = buildString {
+                    append(center.address ?: "Endereço não informado")
+                    if (!center.neighborhood.isNullOrBlank()) {
+                        append(" - ${center.neighborhood}")
+                    }
+                }
+
                 Text(
-                    text = "${center.address} - ${center.neighborhood}",
+                    text = fullAddress,
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
@@ -164,15 +183,18 @@ fun HealthCenterCard(center: HealthCenter) {
 
             Spacer(modifier = Modifier.height(8.dp))
 
-            Text(
-                text = "Vacinas informadas:",
-                style = MaterialTheme.typography.labelMedium
-            )
-            Text(
-                text = center.availableVaccines.joinToString(", "),
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.secondary
-            )
+            val vaccinesText = center.availableVaccines?.joinToString(", ")
+            if (!vaccinesText.isNullOrBlank()) {
+                Text(
+                    text = "Vacinas informadas:",
+                    style = MaterialTheme.typography.labelMedium
+                )
+                Text(
+                    text = vaccinesText,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.secondary
+                )
+            }
         }
     }
 }
