@@ -14,4 +14,5 @@ sealed class Route(val route: String, val title: String, val icon: ImageVector? 
 
     object Login : Route("login", "Login")
     object Report : Route("report", "Registrar Vacina")
+    object MapDetail : Route("map_view", "Mapa aberto")
 }

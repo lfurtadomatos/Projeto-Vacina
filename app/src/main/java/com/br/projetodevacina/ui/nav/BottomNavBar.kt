@@ -27,7 +27,7 @@ fun BottomNavBar(navController: NavController) {
                         Icon(imageVector = icon, contentDescription = item.title)
                     }
                 },
-                label = { Text(item.title) },
+                label = { item.title?.let { Text(it) } },
                 selected = currentRoute == item.route,
                 onClick = {
                     if (currentRoute != item.route) {

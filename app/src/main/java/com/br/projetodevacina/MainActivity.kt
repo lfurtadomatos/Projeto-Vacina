@@ -29,7 +29,7 @@ class MainActivity : ComponentActivity() {
 
                 Scaffold(
                     bottomBar = {
-                        if (currentRoute != Route.Login.route) {
+                        if (currentRoute != Route.Login.route && currentRoute != Route.MapDetail.route) {
                             BottomNavBar(navController = navController)
                         }
                     }

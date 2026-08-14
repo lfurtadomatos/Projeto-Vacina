@@ -7,18 +7,19 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import com.br.projetodevacina.db.FBAuth
+import com.br.projetodevacina.ui.screens.HealthCentersScreen
 import com.br.projetodevacina.ui.screens.LoginScreen
-import com.br.projetodevacina.ui.screens.ProfileScreen
 import com.br.projetodevacina.ui.screens.MapScreen
+import com.br.projetodevacina.ui.screens.ProfileScreen
 import com.br.projetodevacina.ui.screens.SettingsScreen
-
 
 @Composable
 fun MainNavHost(
     navController: NavHostController,
     modifier: Modifier = Modifier
 ) {
-    val fbAuth = remember{ FBAuth() }
+    val fbAuth = remember { FBAuth() }
+
     val startDest = if (fbAuth.currentUser != null) {
         Route.Profile.route
     } else {
@@ -41,12 +42,23 @@ fun MainNavHost(
         }
 
         composable(Route.Profile.route) {
-            val userEmail = fbAuth.currentUser?.email ?: "Carregando..."
-            ProfileScreen(userName = userEmail)
+            ProfileScreen()
         }
 
         composable(Route.Map.route) {
-            MapScreen()
+            HealthCentersScreen(
+                onOpenMap = {
+                    navController.navigate(Route.MapDetail.route)
+                }
+            )
+        }
+
+        composable(Route.MapDetail.route) {
+            MapScreen(
+                onBackToList = {
+                    navController.popBackStack()
+                }
+            )
         }
 
         composable(Route.Settings.route) {
