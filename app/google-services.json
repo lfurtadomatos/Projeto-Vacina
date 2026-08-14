@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "389580843336",
+    "project_id": "projeto-vacina-a1d53",
+    "storage_bucket": "projeto-vacina-a1d53.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:389580843336:android:73acde38975529928aeb7d",
+        "android_client_info": {
+          "package_name": "com.br.projetodevacina"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyD0kZovHdBYI_mRIfper2CaCO94ohSRLM8"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
