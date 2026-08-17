@@ -26,9 +26,6 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.ProjetoDeVacina">
 
-        <meta-data
-            android:name="com.google.android.geo.API_KEY"
-            android:value="AIzaSyDHrQ8bCweFtr1ezvEzWHhrdHuXI6t4HT4"/>
         <activity
             android:name=".MainActivity"
             android:exported="true"
